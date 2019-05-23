@@ -1,0 +1,285 @@
+<link rel="import" href="../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<link rel="import" href="../agenda-usuario.html"/>
+<link rel = "import" href="../bower_components/polymerfire/polymerfire.html">
+<link rel = "import" href="../bower_components/polymerfire/firebase.html">
+<link rel = "import" href="../bower_components/polymerfire/firebase-query.html">
+<link rel="import" href="../bower_components/login-fire/login-fire-form.html">
+<link rel = "import" href = "bower_components/paper-input/paper-input.html">
+<link rel = "import" href = "bower_components/iron-icon/iron-icon.html">
+
+
+
+
+<dom-module id="login-element">
+  <template>
+    <style>
+      .login{
+      z-index:3;
+      padding-top:50px;
+      position:fixed;
+      justify-content: center;
+       align-items: flex-start;
+      left:0;
+      top:0;
+      width:100%;
+      height:100%;
+      overflow:auto;
+background-image: url('contacto-icon.jpg');
+background-size:100% 100%;
+backgroun-repeat: no-repeat;
+      }
+      .tablanuevo{
+      margin: 0;
+       padding: 10px;
+       display: flex;
+       justify-content: center;
+       align-items: center;
+       flex-direction: column;
+       position: relative;
+       width: 25%;
+       border: 1px solid black;
+       border-radius: 4px;
+       background-color: #FFFFFF;
+
+    }  .buton{
+      justify-content: center;
+      align-items: center;
+          background: #469bea;
+          width: 100px;
+          font-weight: bold;
+          color: white;
+          border: 0 none;
+          border-radius: 1px;
+          cursor: pointer;
+          padding: 10px 5px;
+          margin: 10px 5px;
+          justify-content: center;
+          text-align: center;
+        }
+        .img{
+          width: 40%;
+        }
+        .app{
+          background-image: url('fondoAgendaUsuario.jpg');
+          background-size:100% 100%;
+
+        position:fixed;
+        justify-content: center;
+         align-items: flex-start;
+        left:0;
+        top:0;
+        width:100%;
+        height:100%;
+        overflow:auto;
+
+        }
+        agenda-usuario{
+          width: 100%;
+        }
+      </style>
+    <div class="login" id="login" style="display: {{loginvisible}}">
+      <div class="tablanuevo" id="tablanuevo">
+        <h2>BIENVENIDO</h2>
+        <img src="../img/contacto-login.png" class="img" />
+        <br>    <br>
+          <paper-input  id ="us" label="Usuario" required error-message="Ingrese el usuario" value="{{user}}">
+            <iron-icon icon="icons:account-circle" slot="prefix"></iron-icon>
+
+          </paper-input>
+          <paper-input label="Contraseña" id="ps" type="password" value={{pass}} required error-message="Ingrese la contraseña">
+
+          <iron-icon icon="lock" slot="prefix"></iron-icon>
+          </paper-input>
+              <br>    <br>    <br>
+            <button class="buton" id="botonUpdate" on-click="iniciar">ENTRAR</button>
+            <button class="buton" id="botonUpdate" on-click="crear">crear</button>
+            <button class="buton" id="botonUpdate" on-click="verInfo">verInfo</button>
+            <button class="buton" id="botonUpdate" on-click="reseteaImail">resetea correo</button>
+
+
+
+      </div>
+    </div>
+    <div class="app" id="app" style="display: {{appvisible}} ">
+<agenda-usuario></agenda-usuario>
+    </div>
+
+  </template>
+
+
+
+  <script>
+    /**
+     * `agenda-usuario`
+     *
+     *
+     * @customElement
+     * @polymer
+     * @demo demo/index.html
+     */
+    class LoginElement extends Polymer.Element {
+      static get is() { return 'login-element'; }
+      static get properties() {
+        return {
+          prop1: {
+            type: String,
+            value: 'login-element'
+          },
+          user:{
+          type: String
+          },
+          pass:{
+            type: String,
+            value: ""
+          },
+          data:{
+            type: Object
+          },
+          loginvisible:{
+            type: String,
+          },
+          appvisible:{
+            type: String
+          }
+        };
+      }
+
+    ready(){
+      super.ready();
+      var config = {
+         apiKey: "AIzaSyCvpbll8xQNis64mzRSP9wpcUQESECIwN8",
+         authDomain: "prfinal-d4e0d.firebaseapp.com",
+         databaseURL: "https://prfinal-d4e0d.firebaseio.com",
+         projectId: "prfinal-d4e0d",
+         storageBucket: "prfinal-d4e0d.appspot.com",
+         messagingSenderId: "801620956968",
+       };
+       //firebase.initializeApp();
+       this.data = firebase.initializeApp(config, "other");
+       this.loginvisible="flex";
+       this.appvisible="none";
+    }
+      iniciar(){
+
+        if(this.$.us.validate() && this.$.ps.validate()){
+
+        this.data.auth().signInWithEmailAndPassword(this.user, this.pass).then(
+        function (data){
+          document.activeElement.__data.appvisible="flex";
+          document.activeElement.__data.loginvisible="none";
+          document.activeElement.$.app.style.display="flex";
+          document.activeElement.$.login.style.display="none";
+
+        }).catch(function(error) {
+          // Handle Errors here.
+          var errorCode = error.code;
+          var errorMessage = error.message;
+            if (errorCode === 'auth/wrong-password') {
+                    alert('Contraseña incorrecta.');
+                    this.pass="";
+            }
+            if (errorCode === 'auth/user-not-found') {
+                            alert('Usuario no valido.');
+                            this.user="";
+            }
+            if (errorCode === 'auth/user-disabled') {
+                            alert('Usuario deshabilitado.');
+                              this.user="";
+            }
+        });
+        /*
+        this.data.auth().onAuthStateChanged(function(user) {
+            var contactoObtenido=JSON.stringify(user);
+            if (user) {
+
+               document.getElementById('ps');
+               this.loginvisible="none";
+               this.appvisible="flex";
+                store.dispatch('loginvisible', "none");
+                store.dispatch('appvisible', "flex");
+
+              console.log(" autentifocado="+contactoObtenido);
+            }else{
+              console.log(" no autentifocado "+contactoObtenido);
+            }
+        });*/
+
+      }
+
+  //      document.body.innerHTML = `<agenda-usuario></agenda-usuario>`;
+      }
+      entrar(){
+        this.loginvisible="none";
+        this.appvisible="flex";
+      }
+      crear(){
+        var creado = false;
+        creado = this.data.auth().createUserWithEmailAndPassword(this.user, '123456').then(
+        function (data){
+          alert("usuario creado");
+          return true;
+
+        }
+        ).catch(function(error) {
+
+          // Handle Errors here.
+          var errorCode = error.code;
+          var errorMessage = error.message;
+          alert("ERROR: "+error.message);
+            return error.code;
+        });
+
+        if(creado){
+          this.autentificar();
+        }
+      }
+      autentificar(){
+        var user = this.data.auth().currentUser;
+        user.sendEmailVerification().then(function() {
+            alert("correo enviado");
+        }).catch(function(error) {
+          alert("ERROR: "+error.message);
+          // An error happened.
+        });
+      }
+      reseteaImail(){
+        var auth = this.data.auth();
+        var emailAddress = this.user;
+
+        auth.sendPasswordResetEmail(emailAddress).then(function() {
+          // Email sent.
+        }).catch(function(error) {
+          // An error happened.
+        });
+      }
+      verInfo(){
+        var user = this.data.currentUser;
+
+        user.updateProfile({
+          displayName: "Jane Q. User",
+          photoURL: "https://example.com/jane-q-user/profile.jpg"
+        }).then(function() {
+          // Update successful.
+        }).catch(function(error) {
+          // An error happened.
+        });
+        var user = this.data.auth().currentUser;
+        var name, email, photoUrl, uid, emailVerified;
+
+        if (user != null) {
+          name = user.displayName;
+          email = user.email;
+          photoUrl = user.photoURL;
+          emailVerified = user.emailVerified;
+          uid = user.uid;  // The user's ID, unique to the Firebase project. Do NOT use
+                           // this value to authenticate with your backend server, if
+                           // you have one. Use User.getToken() instead.
+        }
+      }
+
+    }
+
+    window.customElements.define(LoginElement.is, LoginElement);
+  </script>
+</dom-module>
